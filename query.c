@@ -538,7 +538,7 @@ static int doit(struct query *z,int state)
       }
     }
 
-    if (!typematch(DNS_T_ANY,dtype) && !typematch(DNS_T_AXFR,dtype) && !typematch(DNS_T_CNAME,dtype) && !typematch(DNS_T_NS,dtype) && !typematch(DNS_T_PTR,dtype) && !typematch(DNS_T_A,dtype) && !typematch(DNS_T_MX,dtype)) {
+    if (!typematch(DNS_T_ANY,dtype) && !typematch(DNS_T_AXFR,dtype) && !typematch(DNS_T_CNAME,dtype) && !typematch(DNS_T_NS,dtype) && !typematch(DNS_T_PTR,dtype) && !typematch(DNS_T_A,dtype) && !typematch(DNS_T_MX,dtype) && !typematch(DNS_T_AAAA,dtype)) {
       byte_copy(key,2,dtype);
       cached = cache_get(key,dlen + 2,&cachedlen,&ttl);
       if (cached && (cachedlen || byte_diff(dtype,2,DNS_T_ANY))) {
@@ -836,6 +836,20 @@ static int doit(struct query *z,int state)
         ++i;
       }
       save_finish(DNS_T_A,t1,ttl);
+    }
+    else if (byte_equal(type,2,DNS_T_AAAA)) {
+      save_start();
+      while (i < j) {
+        pos = dns_packet_skipname(buf,len,records[i]); if (!pos) goto DIE;
+        pos = dns_packet_copy(buf,len,pos,header,10); if (!pos) goto DIE;
+        if (byte_equal(header + 8,2,"\0\20")) {
+          pos = dns_packet_copy(buf,len,pos,header,16); if (!pos) goto DIE;
+          save_data(header,16);
+          log_rr(whichserver,t1,DNS_T_AAAA,header,16,ttl);
+        }
+        ++i;
+      }
+      save_finish(DNS_T_AAAA,t1,ttl);
     }
     else {
       save_start();
