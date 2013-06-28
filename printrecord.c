@@ -90,7 +90,7 @@ unsigned int printrecord_cat(stralloc *out,const char *buf,unsigned int len,unsi
     if (!stralloc_cats(out," AAAA ")) return 0;
     pos = dns_packet_copy(buf,len,pos,misc,16); if (!pos) return 0;
     stringlen=ip6_fmt(ip6str,misc);
-    if (!stralloc_cats(out,ip6str)) return 0;
+    if (!stralloc_catb(out,ip6str,stringlen)) return 0;
   }
   else {
     if (!stralloc_cats(out," ")) return 0;
