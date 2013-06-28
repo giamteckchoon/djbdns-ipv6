@@ -21,6 +21,7 @@ static int doit(stralloc *work,const char *rule)
   if (case_diffb(rule,colon,work->s + prefixlen)) return 1;
   if (ch == '?') {
     if (byte_chr(work->s,prefixlen,'.') < prefixlen) return 1;
+    if (byte_chr(work->s,prefixlen,':') < prefixlen) return 1;
     if (byte_chr(work->s,prefixlen,'[') < prefixlen) return 1;
     if (byte_chr(work->s,prefixlen,']') < prefixlen) return 1;
   }
