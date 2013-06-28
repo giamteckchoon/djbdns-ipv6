@@ -1,0 +1,51 @@
+Thu, 16 Nov 2000 12:20:53 +0100
+
+These man-pages were created from djb's documentation found at
+http://cr.yp.to/djbdns.html .
+
+Gzip the man-pages and copy them to a subdirectory man8/ or man1/ or man5/
+of any directory found in Your $MANPATH:
+
+  # gzip *.8 ; cp *.8.gz /usr/share/man/man8/
+  # gzip *.1 ; cp *.1.gz /usr/share/man/man1/
+  # gzip *.5 ; cp *.5.gz /usr/share/man/man5/
+
+See http://smarden.org/pape/djb/ for recent informations.
+
+G. Pape <pape@smarden.org>
+
+Fri,  1 Dec 2000 10:06:36 +0100
+  * fixed some man-pages to work on solaris, thanks Jonathan de Boyne Pollard.
+
+Tue,  9 Jan 2001 00:27:57 +0100
+  * man-pages adapted to version 1.03: http://cr.yp.to/djbdns/doc.tar.gz
+
+Mon, 22 Jan 2001 12:19:35 +0100
+  * man-pages adapted to version 1.04: http://cr.yp.to/djbdns/doc.tar.gz
+
+Mon, 12 Feb 2001 13:32:11 +0100
+  * man-pages adapted to version 1.05: http://cr.yp.to/djbdns/doc.tar.gz
+
+Wed,  2 May 2001 14:30:38 +0200
+  * merged changes from axfr-get.html into axfr-get.8:
+    http://cr.yp.to/djbdns/doc.tar.gz
+  * added contributed man-page tinydns-edit.8, thanks Jonathan de Boyne
+    Pollard.
+
+Wed, 30 Jan 2002 16:29:54 +0100
+  * merged changes from tinydns-data.html into tinydns-data.8:
+    http://cr.yp.to/djbdns/doc.tar.gz
+
+Wed, 11 Dec 2002 10:23:18 +0100
+  * merge changes from http://cr.yp.to/djbdns/doc.tar.gz into: axfr-get.8,
+    dnscache-conf.8, dnscache.8, dnsfilter.1, dnsip.1, dnsipq.1, dnsmx.1,
+    dnsname.1, dnsq.1, dnsqr.1, dnstrace.1, dnstxt.1, qualification.5,
+    tinydns-conf.8, tinydns-data.8.
+  * tinydns-get.1: new.
+
+Thu, 23 Oct 2003 08:15:45 +0000
+  * merge changes from http://cr.yp.to/djbdns/doc.tar.gz into: axfr-get.8,
+    tinydns-data.8.
+  * pickdns-conf.8, pickdns-data.8, pickdns.8: remove.
+  * dnscache-conf.8, rbldns-conf.8, tinydns-conf.8, walldns-conf.8: adapt.
+  * axfrdns-conf.8: new.
