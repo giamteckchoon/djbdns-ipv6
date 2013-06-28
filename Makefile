@@ -231,12 +231,12 @@ dns.a: \
 makelib dns_dfd.o dns_domain.o dns_dtda.o dns_ip.o dns_ipq.o dns_mx.o \
 dns_name.o dns_nd.o dns_packet.o dns_random.o dns_rcip.o dns_rcrw.o \
 dns_resolve.o dns_sortip.o dns_transmit.o dns_txt.o dns_ip6.o \
-dns_sortip6.o dns_nd6.o
+dns_sortip6.o dns_nd6.o dns_ipq6.o
 	./makelib dns.a dns_dfd.o dns_domain.o dns_dtda.o dns_ip.o \
 	dns_ipq.o dns_mx.o dns_name.o dns_nd.o dns_packet.o \
 	dns_random.o dns_rcip.o dns_rcrw.o dns_resolve.o \
 	dns_sortip.o dns_transmit.o dns_txt.o dns_ip6.o dns_sortip6.o \
-	dns_nd6.o
+	dns_nd6.o dns_ipq6.o
 
 dns_dfd.o: \
 compile dns_dfd.c error.h alloc.h byte.h dns.h stralloc.h gen_alloc.h \
@@ -267,6 +267,11 @@ dns_ipq.o: \
 compile dns_ipq.c stralloc.h gen_alloc.h case.h byte.h str.h dns.h \
 stralloc.h iopause.h taia.h tai.h uint64.h taia.h
 	./compile dns_ipq.c
+
+dns_ipq6.o: \
+compile dns_ipq6.c stralloc.h gen_alloc.h case.h byte.h str.h dns.h \
+stralloc.h iopause.h taia.h tai.h uint64.h taia.h
+	./compile dns_ipq6.c
 
 dns_mx.o: \
 compile dns_mx.c stralloc.h gen_alloc.h byte.h uint16.h dns.h \
@@ -409,6 +414,17 @@ dnsipq.o: \
 compile dnsipq.c buffer.h exit.h strerr.h ip4.h dns.h stralloc.h \
 gen_alloc.h iopause.h taia.h tai.h uint64.h taia.h
 	./compile dnsipq.c
+
+dnsip6q: \
+load dnsip6q.o iopause.o dns.a env.a libtai.a alloc.a buffer.a unix.a \
+byte.a socket.lib
+	./load dnsip6q iopause.o dns.a env.a libtai.a alloc.a \
+	buffer.a unix.a byte.a  `cat socket.lib`
+
+dnsip6q.o: \
+compile dnsip6q.c buffer.h exit.h strerr.h ip4.h dns.h stralloc.h \
+gen_alloc.h iopause.h taia.h tai.h uint64.h taia.h
+	./compile dnsip6q.c
 
 dnsmx: \
 load dnsmx.o iopause.o dns.a env.a libtai.a alloc.a buffer.a unix.a \
@@ -719,7 +735,7 @@ dnscache-conf dnscache walldns-conf walldns rbldns-conf rbldns \
 rbldns-data pickdns-conf pickdns pickdns-data tinydns-conf tinydns \
 tinydns-data tinydns-get tinydns-edit axfr-get axfrdns-conf axfrdns \
 dnsip dnsipq dnsname dnstxt dnsmx dnsfilter random-ip dnsqr dnsq \
-dnstrace dnstracesort cachetest utime rts dnsip6
+dnstrace dnstracesort cachetest utime rts dnsip6 dnsip6q
 
 prot.o: \
 compile prot.c hasshsgr.h prot.h

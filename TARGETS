@@ -102,6 +102,7 @@ dns_domain.o
 dns_dtda.o
 dns_ip.o
 dns_ipq.o
+dns_ipq6.o
 dns_mx.o
 dns_name.o
 dns_nd.o
@@ -180,6 +181,8 @@ dnsip.o
 dnsip
 dnsipq.o
 dnsipq
+dnsip6q.o
+dnsip6q
 dnsname.o
 dnsname
 dnstxt.o

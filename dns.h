@@ -84,8 +84,8 @@ extern int dns_mx(stralloc *,const stralloc *);
 extern int dns_resolvconfrewrite(stralloc *);
 extern int dns_ip4_qualify_rules(stralloc *,stralloc *,const stralloc *,const stralloc *);
 extern int dns_ip4_qualify(stralloc *,stralloc *,const stralloc *);
-extern int dns_ip6_qualify_rules(stralloc *,stralloc *,stralloc *,stralloc *);
-extern int dns_ip6_qualify(stralloc *,stralloc *,stralloc *);
+extern int dns_ip6_qualify_rules(stralloc *,stralloc *,const stralloc *,const stralloc *);
+extern int dns_ip6_qualify(stralloc *,stralloc *,const stralloc *);
 
 extern int dns_name6_domain(char *,char *);
 #define DNS_NAME6_DOMAIN (4*16+15)
