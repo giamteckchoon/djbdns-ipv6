@@ -209,7 +209,7 @@ static int doit(char *q,char qtype[2])
       }
     for (i = 0;i < addr6num;++i)
       if (i < 8) {
-	if (!response_rstart(q,DNS_T_AAAA,addrttl)) return 0;
+	if (!response_rstart(q,DNS_T_AAAA,addr6ttl)) return 0;
 	if (!response_addbytes(addr6[i],16)) return 0;
 	response_rfinish(RESPONSE_ANSWER);
       }
