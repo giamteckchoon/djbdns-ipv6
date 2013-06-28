@@ -1,6 +1,7 @@
 #include "scan.h"
 #include "ip4.h"
 #include "ip6.h"
+#include "byte.h"
 
 /*
  * IPv6 addresses are really ugly to parse.
@@ -23,7 +24,9 @@ unsigned int ip6_scan(const char *s,char ip[16])
   for (i=0; i<16; i++) ip[i]=0;
 
   if ((i=ip4_scan(s,ip+12))) {
-    for (len=0; len<12; ++len) ip[len]=V4mappedprefix[len];
+    char *c=V4mappedprefix;
+    if (byte_equal(ip+12,4,V6any)) c=V6any;
+    for (len=0; len<12; ++len) ip[len]=c[len];
     return i;
   }
   for (;;) {

@@ -102,7 +102,7 @@ static int thisudp(struct dns_transmit *d)
   socketfree(d);
 
   while (d->udploop < 4) {
-    for (;d->curserver < 16;++d->curserver) {
+    for (;d->curserver < 64;++d->curserver) {
       ip = d->servers + 16 * d->curserver;
       if (byte_diff(ip,16,V6any)) {
 	d->query[2] = dns_random(256);
@@ -153,9 +153,9 @@ static int thistcp(struct dns_transmit *d)
   socketfree(d);
   packetfree(d);
 
-  for (;d->curserver < 16;++d->curserver) {
-    ip = d->servers + 4 * d->curserver;
-    if (byte_diff(ip,4,"\0\0\0\0")) {
+  for (;d->curserver < 64;++d->curserver) {
+    ip = d->servers + 16 * d->curserver;
+    if (byte_diff(ip,16,V6any)) {
       d->query[2] = dns_random(256);
       d->query[3] = dns_random(256);
 
@@ -166,7 +166,7 @@ static int thistcp(struct dns_transmit *d)
       taia_now(&now);
       taia_uint(&d->deadline,10);
       taia_add(&d->deadline,&d->deadline,&now);
-      if (socket_connect4(d->s1 - 1,ip,53) == 0) {
+      if (socket_connect6(d->s1 - 1,ip,53,d->scope_id) == 0) {
         d->tcpstate = 2;
         return 0;
       }

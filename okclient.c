@@ -29,7 +29,7 @@ int okclient(char ip[16])
     if (!fn[3]) return 0;
     if (stat(fn,&st) == 0) return 1;
     /* treat temporary error as rejection */
-    i = str_rchr(fn,':');
+    i = str_rchr(fn,sep);
     if (!fn[i]) return 0;
     fn[i] = 0;
   }
