@@ -6,7 +6,7 @@
 #include "byte.h"
 #include "okclient.h"
 
-static char fn[3 + IP4_FMT];
+static char fn[3 + IP6_FMT];
 
 int okclient(char ip[16])
 {
