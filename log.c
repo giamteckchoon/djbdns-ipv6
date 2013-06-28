@@ -174,21 +174,21 @@ void log_cachednxdomain(const char *dn)
   line();
 }
 
-void log_nxdomain(const char server[4],const char *q,unsigned int ttl)
+void log_nxdomain(const char server[16],const char *q,unsigned int ttl)
 {
   string("nxdomain "); ip(server); space(); number(ttl); space();
   name(q);
   line();
 }
 
-void log_nodata(const char server[4],const char *q,const char qtype[2],unsigned int ttl)
+void log_nodata(const char server[16],const char *q,const char qtype[2],unsigned int ttl)
 {
   string("nodata "); ip(server); space(); number(ttl); space();
   logtype(qtype); space(); name(q);
   line();
 }
 
-void log_lame(const char server[4],const char *control,const char *referral)
+void log_lame(const char server[16],const char *control,const char *referral)
 {
   string("lame "); ip(server); space();
   name(control); space(); name(referral);

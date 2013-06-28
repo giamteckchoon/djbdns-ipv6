@@ -5,6 +5,7 @@
 #include "strerr.h"
 #include "error.h"
 #include "ip4.h"
+#include "ip6.h"
 #include "uint16.h"
 #include "uint64.h"
 #include "socket.h"
@@ -403,6 +404,9 @@ int main()
     strerr_die2x(111,FATAL,"$IP not set");
   if (!ip6_scan(x,myipincoming))
     strerr_die3x(111,FATAL,"unable to parse IP address ",x);
+  /* if if IP is a mapped-IPv4 address, disable IPv6 functionality */
+  if (ip6_isv4mapped(myipincoming))
+    noipv6 = 1;
 
   udp53 = socket_udp6();
   if (udp53 == -1)

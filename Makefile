@@ -903,7 +903,7 @@ compile socket_tcp.c ndelay.h socket.h uint16.h
 	./compile socket_tcp.c
 
 socket_tcp6.o: \
-compile socket_tcp6.c ndelay.h socket.h uint16.h uint32.h
+compile socket_tcp6.c ndelay.h socket.h uint16.h uint32.h haveip6.h
 	./compile socket_tcp6.c
 
 socket_udp.o: \
@@ -911,7 +911,7 @@ compile socket_udp.c ndelay.h socket.h uint16.h
 	./compile socket_udp.c
 
 socket_udp6.o: \
-compile socket_udp6.c ndelay.h socket.h uint16.h uint32.h
+compile socket_udp6.c ndelay.h socket.h uint16.h uint32.h haveip6.h
 	./compile socket_udp6.c
 
 socket_noipv6.o: \

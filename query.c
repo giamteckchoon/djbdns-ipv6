@@ -640,7 +640,7 @@ static int doit(struct query *z,int state)
   buf = z->dt.packet;
   len = z->dt.packetlen;
 
-  whichserver = z->dt.servers + 4 * z->dt.curserver;
+  whichserver = z->dt.servers + 16 * z->dt.curserver;
   control = z->control[z->level];
   d = z->name[z->level];
   dtype = z->level ? DNS_T_A : z->type;
@@ -706,7 +706,7 @@ static int doit(struct query *z,int state)
   if (!flagcname && !rcode && !flagout && flagreferral && !flagsoa)
     if (dns_domain_equal(referral,control) || !dns_domain_suffix(referral,control)) {
       log_lame(whichserver,control,referral);
-      byte_zero(whichserver,4);
+      byte_zero(whichserver,16);
       goto HAVENS;
     }
 
@@ -926,7 +926,8 @@ static int doit(struct query *z,int state)
               if (datalen == 4)
                 for (k = 0;k < 256;k += 16)
                   if (byte_equal(z->servers[z->level - 1] + k,16,V6any)) {
-                    if (!dns_packet_copy(buf,len,pos,z->servers[z->level - 1] + k,4)) goto DIE;
+		    byte_copy(z->servers[z->level - 1] + k,12,V4mappedprefix);
+                    if (!dns_packet_copy(buf,len,pos,z->servers[z->level - 1] + k + 12,4)) goto DIE;
                     break;
                   }
         pos += datalen;

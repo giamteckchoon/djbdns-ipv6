@@ -94,6 +94,8 @@ int main()
   if (!ip6_scan(x,ip)) {
     strerr_die3x(111,fatal,"unable to parse IP address ",x);
   }
+  if (ip6_isv4mapped(ip))
+    noipv6 = 1;
 
   udp53 = socket_udp6();
   if (udp53 == -1)
