@@ -13,6 +13,14 @@ int okclient(char ip[16])
   struct stat st;
   int i;
   char sep;
+  static int init_done=0;
+  if (!init_done) {
+    if (env_get("OKCLIENT")) {
+      init_done=1;
+    } else
+      init_done=2;
+  }
+  if (init_done==1) return 1;
 
   fn[0] = 'i';
   fn[1] = 'p';
