@@ -9,8 +9,10 @@
 #include "dd.h"
 #include "strerr.h"
 #include "response.h"
+#include "alloc.h"
 
-static char *base;
+static char **bases;
+unsigned int nbases = 0;
 
 static struct cdb c;
 static char key[5];
@@ -33,7 +35,11 @@ static int doit(char *q,char qtype[2])
   if (byte_equal(qtype,2,DNS_T_ANY)) flaga = flagtxt = 1;
   if (!flaga && !flagtxt) goto REFUSE;
 
-  if (dd(q,base,reverseip) != 4) goto REFUSE;
+  for ( i=0 ; i<nbases ; i++ )
+    if (dd(q,bases[i],reverseip) == 4) goto OK;
+  goto REFUSE;
+
+  OK:
   uint32_unpack(reverseip,&ipnum);
   uint32_pack_big(ip,ipnum);
 
@@ -107,10 +113,35 @@ const char *starting = "starting rbldns\n";
 void initialize(void)
 {
   char *x;
+  char *z;
+  char **names;
+  int i;
 
   x = env_get("BASE");
   if (!x)
     strerr_die2x(111,fatal,"$BASE not set");
-  if (!dns_domain_fromdot(&base,x,str_len(x)))
-    strerr_die2x(111,fatal,"unable to parse $BASE");
+
+  nbases = 1;
+  for ( z=x ; *z ; ++z )
+    if ( ':' == *z )
+      ++nbases;
+
+  bases = alloc ( nbases * sizeof(char*) ) ;
+  if (!bases) strerr_die2x(111,fatal,"out of memory");
+  names = alloc ( nbases * sizeof(char*) ) ;
+  if (!names) strerr_die2x(111,fatal,"out of memory");
+
+  names[i=0] = x ;
+  for ( z=x ; *z ; ++z )
+    if ( ':' == *z ) {
+      *z++ = 0 ;
+      names[++i] = z ;
+    }
+
+  for ( i=0 ; i<nbases ; i++ ) {
+    if (!dns_domain_fromdot(&(bases[i]),names[i],str_len(names[i])))
+      strerr_die3x(111,fatal,"unable to parse $BASE part ",names[i]);
+  }
+
+  alloc_free(names);
 }

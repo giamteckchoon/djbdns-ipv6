@@ -795,7 +795,7 @@ byte.h scan.h fmt.h ip4.h
 rbldns.o: \
 compile rbldns.c str.h byte.h ip4.h open.h env.h cdb.h uint32.h dns.h \
 stralloc.h gen_alloc.h iopause.h taia.h tai.h uint64.h taia.h dd.h \
-strerr.h response.h uint32.h
+strerr.h response.h uint32.h alloc.h
 	./compile rbldns.c
 
 readclose.o: \
