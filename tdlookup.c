@@ -8,6 +8,7 @@
 #include "dns.h"
 #include "seek.h"
 #include "response.h"
+#include "ip6.h"
 
 static int want(const char *owner,const char type[2])
 {
@@ -301,7 +302,7 @@ static int doit(char *q,char qtype[2])
   return 1;
 }
 
-int respond(char *q,char qtype[2],char ip[4])
+int respond(char *q,char qtype[2],char ip[16])
 {
   int fd;
   int r;
@@ -315,15 +316,17 @@ int respond(char *q,char qtype[2],char ip[4])
   byte_zero(clientloc,2);
   key[0] = 0;
   key[1] = '%';
-  byte_copy(key + 2,4,ip);
-  r = cdb_find(&c,key,6);
-  if (!r) r = cdb_find(&c,key,5);
-  if (!r) r = cdb_find(&c,key,4);
-  if (!r) r = cdb_find(&c,key,3);
-  if (!r) r = cdb_find(&c,key,2);
-  if (r == -1) return 0;
-  if (r && (cdb_datalen(&c) == 2))
-    if (cdb_read(&c,clientloc,2,cdb_datapos(&c)) == -1) return 0;
+  if (byte_equal(ip,12,V4mappedprefix)) {
+    byte_copy(key + 2,4,ip+12);
+    r = cdb_find(&c,key,6);
+    if (!r) r = cdb_find(&c,key,5);
+    if (!r) r = cdb_find(&c,key,4);
+    if (!r) r = cdb_find(&c,key,3);
+    if (!r) r = cdb_find(&c,key,2);
+    if (r == -1) return 0;
+    if (r && (cdb_datalen(&c) == 2))
+      if (cdb_read(&c,clientloc,2,cdb_datapos(&c)) == -1) return 0;
+  }
 
   r = doit(q,qtype);
 

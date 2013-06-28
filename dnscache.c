@@ -132,7 +132,6 @@ void u_new(void)
   }
 }
 
-
 static int tcp53;
 
 #define MAXTCP 20
