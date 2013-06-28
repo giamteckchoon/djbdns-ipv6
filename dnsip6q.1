@@ -1,43 +1,44 @@
-.TH dnsipq 1
+.TH dnsip6q 1
 
 .SH NAME
-dnsipq \- dns lookup tool
+dnsip6q \- dns lookup tool
 
 .SH SYNOPSIS
-.B dnsipq
+.B dnsip6q
 [
 .I udn
 ]
 
 .SH DESCRIPTION
-.b dnsipq
+.b dnsip6q
 feeds the name
 .I udn
 through
 .BR qualification (5).
-It prints the fully qualified domain name and IP addresses
+It prints the fully qualified domain name and IPv6 addresses
 on a single line.
 If the fully qualified domain name does not exist,
-.B dnsipq
+.B dnsip6q
 prints no addresses.
 You can list several
 .IR udn s;
-.B dnsipq
+.B dnsip6q
 prints each result on a separate line.
 
 Normally
-.B dnsipq
+.B dnsip6q
 exits 0.
 If
-.B dnsipq
+.B dnsip6q
 encounters a temporary problem
-that prevents it from determining the list of IP addresses,
+that prevents it from determining the list of IPv6 addresses,
 it prints an error message and exits 111.
 
 .SH SEE ALSO
 qualification(5),
 dnsip(1),
 dnsip6(1),
+dnsipq(1),
 dnsip6q(1),
 dnsname(1),
 dnsmx(1),
