@@ -26,6 +26,14 @@
 
 #define FATAL "tinydns-data: fatal: "
 
+void die_semantic2(const char * s1, const char * s2)
+{
+  strerr_die3x(111,FATAL,s1,s2);
+}
+void die_semantic4(const char * s1, const char * s2,const char * s3, const char * s4)
+{
+  strerr_die5x(111,FATAL,s1,s2,s3,s4);
+}
 void die_datatmp(void)
 {
   strerr_die2sys(111,FATAL,"unable to create data.tmp: ");
@@ -35,20 +43,39 @@ void nomem(void)
   strerr_die1sys(111,FATAL);
 }
 
+void ttlparse(stralloc *sa,unsigned long * ttl, unsigned long defttl, const char * ltype)
+{
+    int ttllen;
+
+    if (sa->len > 0) {
+	if (!stralloc_0(sa)) nomem();
+	ttllen = scan_ulong(sa->s,ttl);
+	if (ttllen + 1 != sa->len)
+	    die_semantic4("unparseable TTL in ",ltype," line: ", sa->s);
+    } else
+	*ttl = defttl;
+}
+
 void ttdparse(stralloc *sa,char ttd[8])
 {
   unsigned int i;
   char ch;
 
   byte_zero(ttd,8);
-  for (i = 0;(i < 16) && (i < sa->len);++i) {
+  for (i = 0;i < sa->len;++i) {
+    if (i >= 16) {
+      if (!stralloc_0(sa)) nomem();
+      die_semantic2("timestamp is too long: ", sa->s);
+    }
     ch = sa->s[i];
     if ((ch >= '0') && (ch <= '9'))
       ch -= '0';
     else if ((ch >= 'a') && (ch <= 'f'))
       ch -= 'a' - 10;
-    else
-      ch = 0;
+    else {
+      if (!stralloc_0(sa)) nomem();
+      die_semantic2("timestamp contains an invalid character: ", sa->s);
+    }
     if (!(i & 1)) ch <<= 4;
     ttd[i >> 1] |= ch;
   }
@@ -56,6 +83,10 @@ void ttdparse(stralloc *sa,char ttd[8])
 
 void locparse(stralloc *sa,char loc[2])
 {
+  if (sa->len > 2) {
+    if (!stralloc_0(sa)) nomem();
+    die_semantic2("location code longer than two characters: ", sa->s);
+  }
   loc[0] = (sa->len > 0) ? sa->s[0] : 0;
   loc[1] = (sa->len > 1) ? sa->s[1] : 0;
 }
@@ -196,6 +227,7 @@ int main()
   int i;
   int j;
   int k;
+  int iplen;
   char ch;
   unsigned long ttl;
   char ttd[8];
@@ -292,8 +324,7 @@ int main()
 	}
 	uint32_pack_big(soa + 16,u);
 
-	if (!stralloc_0(&f[8])) nomem();
-	if (!scan_ulong(f[8].s,&ttl)) ttl = TTL_NEGATIVE;
+	ttlparse(&f[8],&ttl,TTL_NEGATIVE,"Z");
 	ttdparse(&f[9],ttd);
 	locparse(&f[10],loc);
 
@@ -308,8 +339,7 @@ int main()
 
       case '.': case '&':
 	if (!dns_domain_fromdot(&d1,f[0].s,f[0].len)) nomem();
-	if (!stralloc_0(&f[3])) nomem();
-	if (!scan_ulong(f[3].s,&ttl)) ttl = TTL_NS;
+	ttlparse(&f[3],&ttl,TTL_NS,". or &");
 	ttdparse(&f[4],ttd);
 	locparse(&f[5],loc);
 
@@ -334,24 +364,26 @@ int main()
 	rr_addname(d2);
 	rr_finish(d1);
 
-	if (ip4_scan(f[1].s,ip)) {
+	iplen = ip4_scan(f[1].s,ip);
+	if (iplen != 0 && iplen + 1 == f[1].len) {
 	  rr_start(DNS_T_A,ttl,ttd,loc);
 	  rr_add(ip,4);
 	  rr_finish(d2);
-	}
+	} else if (f[1].len > 1)
+	  die_semantic4("unparseable IP address in ","& or ."," line: ", f[1].s);
 
 	break;
 
       case '+': case '=':
 	if (!dns_domain_fromdot(&d1,f[0].s,f[0].len)) nomem();
-	if (!stralloc_0(&f[2])) nomem();
-	if (!scan_ulong(f[2].s,&ttl)) ttl = TTL_POSITIVE;
+	ttlparse(&f[2],&ttl,TTL_POSITIVE,"+ or =");
 	ttdparse(&f[3],ttd);
 	locparse(&f[4],loc);
 
 	if (!stralloc_0(&f[1])) nomem();
 
-	if (ip4_scan(f[1].s,ip)) {
+	iplen = ip4_scan(f[1].s,ip);
+	if (iplen != 0 && iplen + 1 == f[1].len) {
 	  rr_start(DNS_T_A,ttl,ttd,loc);
 	  rr_add(ip,4);
 	  rr_finish(d1);
@@ -362,11 +394,15 @@ int main()
 	    rr_addname(d1);
 	    rr_finish(dptr);
 	  }
-	}
+	} else if (f[1].len > 1)
+	  die_semantic4("unparseable IP address in ","+ or ="," line: ", f[1].s);
+	else
+	  die_semantic4("missing IP address in ","+ or ="," line: ", f[1].s);
 	break;
 
       case '6': case '3':
 	if (!dns_domain_fromdot(&d1,f[0].s,f[0].len)) nomem();
+	ttlparse(&f[2],&ttl,TTL_POSITIVE,"6 or 3");
 	if (!stralloc_0(&f[2])) nomem();
 	if (!scan_ulong(f[2].s,&ttl)) ttl = TTL_POSITIVE;
 	ttdparse(&f[3],ttd);
@@ -394,8 +430,7 @@ int main()
 
       case '@':
 	if (!dns_domain_fromdot(&d1,f[0].s,f[0].len)) nomem();
-	if (!stralloc_0(&f[4])) nomem();
-	if (!scan_ulong(f[4].s,&ttl)) ttl = TTL_POSITIVE;
+	ttlparse(&f[4],&ttl,TTL_POSITIVE,"@");
 	ttdparse(&f[5],ttd);
 	locparse(&f[6],loc);
 
@@ -416,18 +451,19 @@ int main()
 	rr_addname(d2);
 	rr_finish(d1);
 
-	if (ip4_scan(f[1].s,ip)) {
+	iplen = ip4_scan(f[1].s,ip);
+	if (iplen != 0 && iplen + 1 == f[1].len) {
 	  rr_start(DNS_T_A,ttl,ttd,loc);
 	  rr_add(ip,4);
 	  rr_finish(d2);
-	}
+	} else if (f[1].len > 1)
+	  die_semantic4("unparseable IP address in ","@"," line: ", f[1].s);
 	break;
 
       case '^': case 'C':
 	if (!dns_domain_fromdot(&d1,f[0].s,f[0].len)) nomem();
 	if (!dns_domain_fromdot(&d2,f[1].s,f[1].len)) nomem();
-	if (!stralloc_0(&f[2])) nomem();
-	if (!scan_ulong(f[2].s,&ttl)) ttl = TTL_POSITIVE;
+	ttlparse(&f[2],&ttl,TTL_POSITIVE,"^ or C");
 	ttdparse(&f[3],ttd);
 	locparse(&f[4],loc);
 
@@ -441,8 +477,7 @@ int main()
 
       case '\'':
 	if (!dns_domain_fromdot(&d1,f[0].s,f[0].len)) nomem();
-	if (!stralloc_0(&f[2])) nomem();
-	if (!scan_ulong(f[2].s,&ttl)) ttl = TTL_POSITIVE;
+	ttlparse(&f[2],&ttl,TTL_POSITIVE,"\'");
 	ttdparse(&f[3],ttd);
 	locparse(&f[4],loc);
 
@@ -464,8 +499,7 @@ int main()
 
       case ':':
 	if (!dns_domain_fromdot(&d1,f[0].s,f[0].len)) nomem();
-	if (!stralloc_0(&f[3])) nomem();
-	if (!scan_ulong(f[3].s,&ttl)) ttl = TTL_POSITIVE;
+	ttlparse(&f[3],&ttl,TTL_POSITIVE,":");
 	ttdparse(&f[4],ttd);
 	locparse(&f[5],loc);
 
