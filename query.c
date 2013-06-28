@@ -12,6 +12,7 @@
 #include "alloc.h"
 #include "response.h"
 #include "query.h"
+#include "ip6.h"
 
 static int flagforwardonly = 0;
 
@@ -110,7 +111,7 @@ static int rqa(struct query *z)
   return 1;
 }
 
-static int globalip(char *d,char ip[4])
+static int globalip(char *d,char ip[16])
 {
   if (dns_domain_equal(d,"\011localhost\0")) {
     byte_copy(ip,4,"\177\0\0\1");
@@ -211,8 +212,9 @@ static int doit(struct query *z,int state)
   if (globalip(d,misc)) {
     if (z->level) {
       for (k = 0;k < 64;k += 4)
-        if (byte_equal(z->servers[z->level - 1] + k,4,"\0\0\0\0")) {
-	  byte_copy(z->servers[z->level - 1] + k,4,misc);
+        if (byte_equal(z->servers[z->level - 1] + k,16,V6any)) {
+	  byte_copy(z->servers[z->level - 1] + k,12,V4mappedprefix);
+	  byte_copy(z->servers[z->level - 1] + k + 12,4,misc);
 	  break;
 	}
       goto LOWERLEVEL;
@@ -226,6 +228,158 @@ static int doit(struct query *z,int state)
     cleanup(z);
     return 1;
   }
+
+  if (dns_domain_equal(d,"\0011\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\003ip6\003int\0")) {
+    if (z->level) goto LOWERLEVEL;
+    if (!rqa(z)) goto DIE;
+    if (typematch(DNS_T_PTR,dtype)) {
+      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_addname("\016ipv6-localhost\0")) goto DIE;
+      if (!response_addname("\015ipv6-loopback\0")) goto DIE;
+      response_rfinish(RESPONSE_ANSWER);
+    }
+    cleanup(z);
+    return 1;
+  }
+
+  if (dns_domain_equal(d,"\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\001e\001f\003ip6\003int\0")) {
+    if (z->level) goto LOWERLEVEL;
+    if (!rqa(z)) goto DIE;
+    if (typematch(DNS_T_PTR,dtype)) {
+      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_addname("\015ipv6-localnet\0")) goto DIE;
+      response_rfinish(RESPONSE_ANSWER);
+    }
+    cleanup(z);
+    return 1;
+  }
+
+  if (dns_domain_equal(d,"\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\001f\001f\003ip6\003int\0")) {
+    if (z->level) goto LOWERLEVEL;
+    if (!rqa(z)) goto DIE;
+    if (typematch(DNS_T_PTR,dtype)) {
+      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_addname("\020ipv6-mcastprefix\0")) goto DIE;
+      response_rfinish(RESPONSE_ANSWER);
+    }
+    cleanup(z);
+    return 1;
+  }
+
+  if (dns_domain_equal(d,"\0011\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0012\0010\001f\001f\003ip6\003int\0")) {
+    if (z->level) goto LOWERLEVEL;
+    if (!rqa(z)) goto DIE;
+    if (typematch(DNS_T_PTR,dtype)) {
+      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_addname("\015ipv6-allnodes\0")) goto DIE;
+      response_rfinish(RESPONSE_ANSWER);
+    }
+    cleanup(z);
+    return 1;
+  }
+
+  if (dns_domain_equal(d,"\0012\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0012\0010\001f\001f\003ip6\003int\0")) {
+    if (z->level) goto LOWERLEVEL;
+    if (!rqa(z)) goto DIE;
+    if (typematch(DNS_T_PTR,dtype)) {
+      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_addname("\017ipv6-allrouters\0")) goto DIE;
+      response_rfinish(RESPONSE_ANSWER);
+    }
+    cleanup(z);
+    return 1;
+  }
+
+  if (dns_domain_equal(d,"\0011\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0010\0012\0010\001f\001f\003ip6\003int\0")) {
+    if (z->level) goto LOWERLEVEL;
+    if (!rqa(z)) goto DIE;
+    if (typematch(DNS_T_PTR,dtype)) {
+      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_addname("\015ipv6-allhosts\0")) goto DIE;
+      response_rfinish(RESPONSE_ANSWER);
+    }
+    cleanup(z);
+    return 1;
+  }
+
+  if (dns_domain_equal(d,"\016ipv6-localhost\0") ||
+      dns_domain_equal(d,"\015ipv6-loopback\0"))
+    {
+      if (z->level) goto LOWERLEVEL;
+      if (!rqa(z)) goto DIE;
+      if (typematch(DNS_T_AAAA,dtype)) {
+	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_addbytes("\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\001",16)) goto DIE;
+	response_rfinish(RESPONSE_ANSWER);
+      }
+      cleanup(z);
+      return 1;
+    }
+
+  if (dns_domain_equal(d,"\015ipv6-localnet\0"))
+    {
+      if (z->level) goto LOWERLEVEL;
+      if (!rqa(z)) goto DIE;
+      if (typematch(DNS_T_AAAA,dtype)) {
+	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_addbytes("\376\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000",16)) goto DIE;
+	response_rfinish(RESPONSE_ANSWER);
+      }
+      cleanup(z);
+      return 1;
+    }
+
+  if (dns_domain_equal(d,"\020ipv6-mcastprefix\0"))
+    {
+      if (z->level) goto LOWERLEVEL;
+      if (!rqa(z)) goto DIE;
+      if (typematch(DNS_T_AAAA,dtype)) {
+	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_addbytes("\377\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000",16)) goto DIE;
+	response_rfinish(RESPONSE_ANSWER);
+      }
+      cleanup(z);
+      return 1;
+    }
+
+  if (dns_domain_equal(d,"\15ipv6-allnodes\0"))
+    {
+      if (z->level) goto LOWERLEVEL;
+      if (!rqa(z)) goto DIE;
+      if (typematch(DNS_T_AAAA,dtype)) {
+	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_addbytes("\377\002\000\000\000\000\000\000\000\000\000\000\000\000\000\001",16)) goto DIE;
+	response_rfinish(RESPONSE_ANSWER);
+      }
+      cleanup(z);
+      return 1;
+    }
+
+  if (dns_domain_equal(d,"\17ipv6-allrouters\0"))
+    {
+      if (z->level) goto LOWERLEVEL;
+      if (!rqa(z)) goto DIE;
+      if (typematch(DNS_T_AAAA,dtype)) {
+	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_addbytes("\377\002\000\000\000\000\000\000\000\000\000\000\000\000\000\002",16)) goto DIE;
+	response_rfinish(RESPONSE_ANSWER);
+      }
+      cleanup(z);
+      return 1;
+    }
+
+  if (dns_domain_equal(d,"\15ipv6-allhosts\0"))
+    {
+      if (z->level) goto LOWERLEVEL;
+      if (!rqa(z)) goto DIE;
+      if (typematch(DNS_T_AAAA,dtype)) {
+	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_addbytes("\377\002\000\000\000\000\000\000\000\000\000\000\000\000\000\003",16)) goto DIE;
+	response_rfinish(RESPONSE_ANSWER);
+      }
+      cleanup(z);
+      return 1;
+    }
 
   if (dns_domain_equal(d,"\0011\0010\0010\003127\7in-addr\4arpa\0")) {
     if (z->level) goto LOWERLEVEL;
@@ -326,9 +480,10 @@ static int doit(struct query *z,int state)
 	if (z->level) {
 	  log_cachedanswer(d,DNS_T_A);
 	  while (cachedlen >= 4) {
-	    for (k = 0;k < 64;k += 4)
-	      if (byte_equal(z->servers[z->level - 1] + k,4,"\0\0\0\0")) {
-		byte_copy(z->servers[z->level - 1] + k,4,cached);
+	    for (k = 0;k < 256;k += 16)
+	      if (byte_equal(z->servers[z->level - 1] + k,16,V6any)) {
+		byte_copy(z->servers[z->level - 1] + k,12,V4mappedprefix);
+		byte_copy(z->servers[z->level - 1] + k + 12,4,cached);
 		break;
 	      }
 	    cached += 4;
@@ -345,6 +500,38 @@ static int doit(struct query *z,int state)
 	  response_rfinish(RESPONSE_ANSWER);
 	  cached += 4;
 	  cachedlen -= 4;
+	}
+	cleanup(z);
+	return 1;
+      }
+    }
+
+    if (typematch(DNS_T_AAAA,dtype)) {
+      byte_copy(key,2,DNS_T_AAAA);
+      cached = cache_get(key,dlen + 2,&cachedlen,&ttl);
+      if (cached && (cachedlen || byte_diff(dtype,2,DNS_T_ANY))) {
+	if (z->level) {
+	  log_cachedanswer(d,DNS_T_AAAA);
+	  while (cachedlen >= 16) {
+	    for (k = 0;k < 256;k += 16)
+	      if (byte_equal(z->servers[z->level - 1] + k,16,V6any)) {
+		byte_copy(z->servers[z->level - 1] + k,16,cached);
+		break;
+	      }
+	    cached += 16;
+	    cachedlen -= 16;
+	  }
+	  goto LOWERLEVEL;
+	}
+
+	log_cachedanswer(d,DNS_T_AAAA);
+	if (!rqa(z)) goto DIE;
+	while (cachedlen >= 16) {
+	  if (!response_rstart(d,DNS_T_AAAA,ttl)) goto DIE;
+	  if (!response_addbytes(cached,16)) goto DIE;
+	  response_rfinish(RESPONSE_ANSWER);
+	  cached += 16;
+	  cachedlen -= 16;
 	}
 	cleanup(z);
 	return 1;
@@ -390,7 +577,7 @@ static int doit(struct query *z,int state)
         cached = cache_get(key,dlen + 2,&cachedlen,&ttl);
         if (cached && cachedlen) {
 	  z->control[z->level] = d;
-          byte_zero(z->servers[z->level],64);
+          byte_zero(z->servers[z->level],256);
           for (j = 0;j < QUERY_MAXNS;++j)
             dns_domain_free(&z->ns[z->level][j]);
           pos = 0;
@@ -423,12 +610,12 @@ static int doit(struct query *z,int state)
       dns_domain_free(&z->ns[z->level][j]);
     }
 
-  for (j = 0;j < 64;j += 4)
-    if (byte_diff(z->servers[z->level] + j,4,"\0\0\0\0"))
+  for (j = 0;j < 256;j += 16)
+    if (byte_diff(z->servers[z->level] + j,16,V6any))
       break;
-  if (j == 64) goto SERVFAIL;
+  if (j == 256) goto SERVFAIL;
 
-  dns_sortip(z->servers[z->level],64);
+  dns_sortip6(z->servers[z->level],256);
   if (z->level) {
     log_tx(z->name[z->level],DNS_T_A,z->control[z->level],z->servers[z->level],z->level);
     if (dns_transmit_start(&z->dt,z->servers[z->level],flagforwardonly,z->name[z->level],DNS_T_A,z->localip) == -1) goto DIE;
@@ -723,8 +910,8 @@ static int doit(struct query *z,int state)
           if (typematch(header,DNS_T_A))
             if (byte_equal(header + 2,2,DNS_C_IN)) /* should always be true */
               if (datalen == 4)
-                for (k = 0;k < 64;k += 4)
-                  if (byte_equal(z->servers[z->level - 1] + k,4,"\0\0\0\0")) {
+                for (k = 0;k < 256;k += 16)
+                  if (byte_equal(z->servers[z->level - 1] + k,16,V6any)) {
                     if (!dns_packet_copy(buf,len,pos,z->servers[z->level - 1] + k,4)) goto DIE;
                     break;
                   }
@@ -818,7 +1005,7 @@ static int doit(struct query *z,int state)
   return -1;
 }
 
-int query_start(struct query *z,char *dn,char type[2],char class[2],char localip[4])
+int query_start(struct query *z,char *dn,char type[2],char class[2],char localip[16],unsigned int scope_id)
 {
   if (byte_equal(type,2,DNS_T_AXFR)) { errno = error_perm; return -1; }
 
@@ -829,7 +1016,8 @@ int query_start(struct query *z,char *dn,char type[2],char class[2],char localip
   if (!dns_domain_copy(&z->name[0],dn)) return -1;
   byte_copy(z->type,2,type);
   byte_copy(z->class,2,class);
-  byte_copy(z->localip,4,localip);
+  byte_copy(z->localip,16,localip);
+  z->scope_id=scope_id;
 
   return doit(z,0);
 }

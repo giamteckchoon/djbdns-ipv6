@@ -4,6 +4,7 @@
 #include "buffer.h"
 #include "strerr.h"
 #include "ip4.h"
+#include "ip6.h"
 #include "uint16.h"
 #include "ndelay.h"
 #include "socket.h"
@@ -17,7 +18,7 @@ extern char *starting;
 extern int respond(char *,char *,char *);
 extern void initialize(void);
 
-static char ip[4];
+static char ip[16];
 static uint16 port;
 
 static char buf[513];
@@ -83,34 +84,38 @@ int main()
 {
   char *x;
   int udp53;
+  uint32 interface;
 
+  x = env_get("INTERFACE");
+  if (x) interface=socket_getifidx(x);
   x = env_get("IP");
   if (!x)
     strerr_die2x(111,fatal,"$IP not set");
-  if (!ip4_scan(x,ip))
+  if (!ip6_scan(x,ip)) {
     strerr_die3x(111,fatal,"unable to parse IP address ",x);
+  }
 
-  udp53 = socket_udp();
+  udp53 = socket_udp6();
   if (udp53 == -1)
     strerr_die2sys(111,fatal,"unable to create UDP socket: ");
-  if (socket_bind4_reuse(udp53,ip,53) == -1)
+  if (socket_bind6_reuse(udp53,ip,53,interface) == -1)
     strerr_die2sys(111,fatal,"unable to bind UDP socket: ");
 
   droproot(fatal);
 
   initialize();
-  
+
   ndelay_off(udp53);
   socket_tryreservein(udp53,65536);
 
   buffer_putsflush(buffer_2,starting);
 
   for (;;) {
-    len = socket_recv4(udp53,buf,sizeof buf,ip,&port);
+    len = socket_recv6(udp53,buf,sizeof buf,ip,&port,&interface);
     if (len < 0) continue;
     if (!doit()) continue;
     if (response_len > 512) response_tc();
-    socket_send4(udp53,response,response_len,ip,port);
+    socket_send6(udp53,response,response_len,ip,port,interface);
     /* may block for buffer space; if it fails, too bad */
   }
 }

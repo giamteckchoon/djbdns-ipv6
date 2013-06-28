@@ -44,7 +44,7 @@ int flag0 = 1;
 iopause_fd *io;
 int iolen;
 
-char servers[64];
+char servers[256];
 char ip[4];
 char name[DNS_NAME4_DOMAIN];
 
