@@ -22,6 +22,6 @@ int dns_name6_domain(char name[DNS_NAME6_DOMAIN],char ip[16])
     name[j*4+2]=1;
     name[j*4+3]=tohex((unsigned char)ip[15-j] >> 4);
   }
-  byte_copy(name + 4*16,14,"\3ip6\3int\0");
-  return 4*16+14;
+  byte_copy(name + 4*16,9,"\3ip6\3int\0");
+  return 4*16+9;
 }

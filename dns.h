@@ -88,6 +88,6 @@ extern int dns_ip6_qualify_rules(stralloc *,stralloc *,const stralloc *,const st
 extern int dns_ip6_qualify(stralloc *,stralloc *,const stralloc *);
 
 extern int dns_name6_domain(char *,char *);
-#define DNS_NAME6_DOMAIN (4*16+15)
+#define DNS_NAME6_DOMAIN (4*16+10)
 
 #endif
