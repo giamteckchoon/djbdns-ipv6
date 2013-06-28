@@ -5,14 +5,12 @@
 #include "ip4.h"
 #include "ip6.h"
 
-int dns_ip6_packet(stralloc *out,char *buf,unsigned int len)
+static int dns_ip6_packet_add(stralloc *out,char *buf,unsigned int len)
 {
   unsigned int pos;
   char header[16];
   uint16 numanswers;
   uint16 datalen;
-
-  if (!stralloc_copys(out,"")) return -1;
 
   pos = dns_packet_copy(buf,len,0,header,12); if (!pos) return -1;
   uint16_unpack_big(header + 6,&numanswers);
@@ -23,10 +21,17 @@ int dns_ip6_packet(stralloc *out,char *buf,unsigned int len)
     pos = dns_packet_skipname(buf,len,pos); if (!pos) return -1;
     pos = dns_packet_copy(buf,len,pos,header,10); if (!pos) return -1;
     uint16_unpack_big(header + 8,&datalen);
-    if (byte_equal(header,2,DNS_T_AAAA))
+    if (byte_equal(header,2,DNS_T_AAAA)) {
       if (byte_equal(header + 2,2,DNS_C_IN))
         if (datalen == 16) {
 	  if (!dns_packet_copy(buf,len,pos,header,16)) return -1;
+	  if (!stralloc_catb(out,header,16)) return -1;
+	}
+    } else if (byte_equal(header,2,DNS_T_A))
+      if (byte_equal(header + 2,2,DNS_C_IN))
+        if (datalen == 4) {
+	  byte_copy(header,12,V4mappedprefix);
+	  if (!dns_packet_copy(buf,len,pos,header+12,4)) return -1;
 	  if (!stralloc_catb(out,header,16)) return -1;
 	}
     pos += datalen;
@@ -34,6 +39,11 @@ int dns_ip6_packet(stralloc *out,char *buf,unsigned int len)
 
   dns_sortip6(out->s,out->len);
   return 0;
+}
+
+int dns_ip6_packet(stralloc *out,char *buf,unsigned int len) {
+  if (!stralloc_copys(out,"")) return -1;
+  return dns_ip6_packet_add(out,buf,len);
 }
 
 static char *q = 0;
@@ -50,13 +60,6 @@ int dns_ip6(stralloc *out,stralloc *fqdn)
   fqdn->s[fqdn->len]=0;
   if ((i=ip6_scan(fqdn->s,ip))) {
     if (fqdn->s[i]) return -1;
-    stralloc_copyb(out,ip,16);
-    return 0;
-  }
-  if ((i=ip4_scan(fqdn->s,ip+12))) {
-    if (fqdn->s[i]) return -1;
-    byte_zero(ip,10);
-    ip[10]=ip[11]=0xff;
     stralloc_copyb(out,ip,16);
     return 0;
   }
@@ -80,11 +83,19 @@ int dns_ip6(stralloc *out,stralloc *fqdn)
     }
 
     if (!dns_domain_fromdot(&q,fqdn->s,fqdn->len)) return -1;
-    if (dns_resolve(q,DNS_T_AAAA) == -1) return -1;
-    if (dns_ip6_packet(out,dns_resolve_tx.packet,dns_resolve_tx.packetlen) == -1) return -1;
-    dns_transmit_free(&dns_resolve_tx);
-    dns_domain_free(&q);
-    return 0;
+    if (!stralloc_copys(out,"")) return -1;
+    if (dns_resolve(q,DNS_T_AAAA) != -1)
+      if (dns_ip6_packet_add(out,dns_resolve_tx.packet,dns_resolve_tx.packetlen) != -1) {
+	dns_transmit_free(&dns_resolve_tx);
+	dns_domain_free(&q);
+      }
+    if (!dns_domain_fromdot(&q,fqdn->s,fqdn->len)) return -1;
+    if (dns_resolve(q,DNS_T_A) != -1)
+      if (dns_ip6_packet_add(out,dns_resolve_tx.packet,dns_resolve_tx.packetlen) != -1) {
+	dns_transmit_free(&dns_resolve_tx);
+	dns_domain_free(&q);
+      }
+    return out->a>0?0:-1;
   }
 
   out->len &= ~3;

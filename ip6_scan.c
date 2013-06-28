@@ -24,7 +24,7 @@ unsigned int ip6_scan(const char *s,char ip[16])
   for (i=0; i<16; i++) ip[i]=0;
 
   if ((i=ip4_scan(s,ip+12))) {
-    char *c=V4mappedprefix;
+    const char *c=V4mappedprefix;
     if (byte_equal(ip+12,4,V6any)) c=V6any;
     for (len=0; len<12; ++len) ip[len]=c[len];
     return i;

@@ -25,7 +25,7 @@ void oops(void)
 
 static struct dns_transmit tx;
 
-int resolve(char *q,char qtype[2],char servers[64])
+int resolve(char *q,char qtype[2],char servers[256])
 {
   struct taia stamp;
   struct taia deadline;
