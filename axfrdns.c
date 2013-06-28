@@ -348,7 +348,7 @@ int main()
 
     qlog(ip,port,header,zone,qtype," ");
 
-    if (byte_equal(qtype,2,DNS_T_AXFR)) {
+    if (byte_equal(qtype,2,DNS_T_AXFR) || byte_equal(qtype,2,DNS_T_IXFR)) {
       case_lowerb(zone,zonelen);
       fdcdb = open_read("data.cdb");
       if (fdcdb == -1) die_cdbread();
