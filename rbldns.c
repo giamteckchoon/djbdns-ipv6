@@ -54,15 +54,21 @@ static int doit(char *q,char qtype[2])
   }
   if (!r) { response_nxdomain(); return 1; }
 
-  r = cdb_find(&c,"",0);
-  if (r == -1) return 0;
-  if (r && ((dlen = cdb_datalen(&c)) >= 4)) {
+  if ((dlen=cdb_datalen(&c))>=4) {
     if (dlen > 100) dlen = 100;
     if (cdb_read(&c,data,dlen,cdb_datapos(&c)) == -1) return 0;
   }
   else {
-    dlen = 12;
-    byte_copy(data,dlen,"\177\0\0\2Listed $");
+    r = cdb_find(&c,"",0);
+    if (r == -1) return 0;
+    if (r && ((dlen = cdb_datalen(&c)) >= 4)) {
+      if (dlen > 100) dlen = 100;
+      if (cdb_read(&c,data,dlen,cdb_datapos(&c)) == -1) return 0;
+    }
+    else {
+      dlen = 12;
+      byte_copy(data,dlen,"\177\0\0\2Listed $");
+    }
   }
 
   if ((dlen >= 5) && (data[dlen - 1] == '$')) {

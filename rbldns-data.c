@@ -28,6 +28,7 @@ char bspace[1024];
 int fdcdb;
 struct cdb_make cdb;
 static stralloc tmp;
+static stralloc tmp2;
 
 static stralloc line;
 int match = 1;
@@ -105,14 +106,29 @@ int main()
 	}
 	if (!stralloc_catb(&tmp,"\0\0\0\0",4)) nomem();
 	tmp.len = 4;
-	if (line.s[j] == '/')
-	  scan_ulong(line.s + j + 1,&u);
+	if (line.s[j] == '/') {
+	  k = scan_ulong(line.s + j + 1,&u);
+	  j += k + 1 ;
+	}
 	else
 	  u = 32;
 	if (u > 32) u = 32;
 	ch = u;
 	if (!stralloc_catb(&tmp,&ch,1)) nomem();
-        if (cdb_make_add(&cdb,tmp.s,tmp.len,"",0) == -1)
+	if ( line.s[j] == ':' ) {
+	  ip[0]=ip[1]=ip[2]=ip[3]=0 ;
+	  j++ ;
+	  j += ip4_scan(line.s+j,ip) ;
+	  if (!stralloc_copyb(&tmp2,ip,4)) nomem();
+	  if ( line.s[j] == ':' ) {
+	    j ++ ;
+	    if (!stralloc_catb(&tmp2,line.s+j,line.len-j-1)) nomem();
+	  }
+	}
+	else {
+	  if (!stralloc_copyb(&tmp2,"",0)) nomem();
+	}
+	if (cdb_make_add(&cdb,tmp.s,tmp.len,tmp2.s,tmp2.len) == -1)
           die_datatmp();
 	break;
     }
