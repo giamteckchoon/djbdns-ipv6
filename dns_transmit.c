@@ -102,7 +102,7 @@ static int thisudp(struct dns_transmit *d)
   socketfree(d);
 
   while (d->udploop < 4) {
-    for (;d->curserver < 64;++d->curserver) {
+    for (;d->curserver < 16;++d->curserver) {
       ip = d->servers + 16 * d->curserver;
       if (byte_diff(ip,16,V6any)) {
 	d->query[2] = dns_random(256);
@@ -153,7 +153,7 @@ static int thistcp(struct dns_transmit *d)
   socketfree(d);
   packetfree(d);
 
-  for (;d->curserver < 64;++d->curserver) {
+  for (;d->curserver < 16;++d->curserver) {
     ip = d->servers + 16 * d->curserver;
     if (byte_diff(ip,16,V6any)) {
       d->query[2] = dns_random(256);

@@ -211,7 +211,7 @@ static int doit(struct query *z,int state)
 
   if (globalip(d,misc)) {
     if (z->level) {
-      for (k = 0;k < 64;k += 4)
+      for (k = 0;k < 256;k += 16)
         if (byte_equal(z->servers[z->level - 1] + k,16,V6any)) {
 	  byte_copy(z->servers[z->level - 1] + k,12,V4mappedprefix);
 	  byte_copy(z->servers[z->level - 1] + k + 12,4,misc);
@@ -233,7 +233,7 @@ static int doit(struct query *z,int state)
     if (z->level) goto LOWERLEVEL;
     if (!rqa(z)) goto DIE;
     if (typematch(DNS_T_PTR,dtype)) {
-      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_rstart(d,DNS_T_PTR,655360)) goto DIE;
       if (!response_addname("\016ipv6-localhost\0")) goto DIE;
       if (!response_addname("\015ipv6-loopback\0")) goto DIE;
       response_rfinish(RESPONSE_ANSWER);
@@ -246,7 +246,7 @@ static int doit(struct query *z,int state)
     if (z->level) goto LOWERLEVEL;
     if (!rqa(z)) goto DIE;
     if (typematch(DNS_T_PTR,dtype)) {
-      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_rstart(d,DNS_T_PTR,655360)) goto DIE;
       if (!response_addname("\015ipv6-localnet\0")) goto DIE;
       response_rfinish(RESPONSE_ANSWER);
     }
@@ -258,7 +258,7 @@ static int doit(struct query *z,int state)
     if (z->level) goto LOWERLEVEL;
     if (!rqa(z)) goto DIE;
     if (typematch(DNS_T_PTR,dtype)) {
-      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_rstart(d,DNS_T_PTR,655360)) goto DIE;
       if (!response_addname("\020ipv6-mcastprefix\0")) goto DIE;
       response_rfinish(RESPONSE_ANSWER);
     }
@@ -270,7 +270,7 @@ static int doit(struct query *z,int state)
     if (z->level) goto LOWERLEVEL;
     if (!rqa(z)) goto DIE;
     if (typematch(DNS_T_PTR,dtype)) {
-      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_rstart(d,DNS_T_PTR,655360)) goto DIE;
       if (!response_addname("\015ipv6-allnodes\0")) goto DIE;
       response_rfinish(RESPONSE_ANSWER);
     }
@@ -282,7 +282,7 @@ static int doit(struct query *z,int state)
     if (z->level) goto LOWERLEVEL;
     if (!rqa(z)) goto DIE;
     if (typematch(DNS_T_PTR,dtype)) {
-      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_rstart(d,DNS_T_PTR,655360)) goto DIE;
       if (!response_addname("\017ipv6-allrouters\0")) goto DIE;
       response_rfinish(RESPONSE_ANSWER);
     }
@@ -294,7 +294,7 @@ static int doit(struct query *z,int state)
     if (z->level) goto LOWERLEVEL;
     if (!rqa(z)) goto DIE;
     if (typematch(DNS_T_PTR,dtype)) {
-      if (!response_rstart(d,DNS_T_PTR,"\0\0\0\0")) goto DIE;
+      if (!response_rstart(d,DNS_T_PTR,655360)) goto DIE;
       if (!response_addname("\015ipv6-allhosts\0")) goto DIE;
       response_rfinish(RESPONSE_ANSWER);
     }
@@ -308,7 +308,7 @@ static int doit(struct query *z,int state)
       if (z->level) goto LOWERLEVEL;
       if (!rqa(z)) goto DIE;
       if (typematch(DNS_T_AAAA,dtype)) {
-	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_rstart(d,DNS_T_AAAA,655360)) goto DIE;
 	if (!response_addbytes("\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\001",16)) goto DIE;
 	response_rfinish(RESPONSE_ANSWER);
       }
@@ -321,7 +321,7 @@ static int doit(struct query *z,int state)
       if (z->level) goto LOWERLEVEL;
       if (!rqa(z)) goto DIE;
       if (typematch(DNS_T_AAAA,dtype)) {
-	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_rstart(d,DNS_T_AAAA,655360)) goto DIE;
 	if (!response_addbytes("\376\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000",16)) goto DIE;
 	response_rfinish(RESPONSE_ANSWER);
       }
@@ -334,7 +334,7 @@ static int doit(struct query *z,int state)
       if (z->level) goto LOWERLEVEL;
       if (!rqa(z)) goto DIE;
       if (typematch(DNS_T_AAAA,dtype)) {
-	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_rstart(d,DNS_T_AAAA,655360)) goto DIE;
 	if (!response_addbytes("\377\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000",16)) goto DIE;
 	response_rfinish(RESPONSE_ANSWER);
       }
@@ -347,7 +347,7 @@ static int doit(struct query *z,int state)
       if (z->level) goto LOWERLEVEL;
       if (!rqa(z)) goto DIE;
       if (typematch(DNS_T_AAAA,dtype)) {
-	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_rstart(d,DNS_T_AAAA,655360)) goto DIE;
 	if (!response_addbytes("\377\002\000\000\000\000\000\000\000\000\000\000\000\000\000\001",16)) goto DIE;
 	response_rfinish(RESPONSE_ANSWER);
       }
@@ -360,7 +360,7 @@ static int doit(struct query *z,int state)
       if (z->level) goto LOWERLEVEL;
       if (!rqa(z)) goto DIE;
       if (typematch(DNS_T_AAAA,dtype)) {
-	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_rstart(d,DNS_T_AAAA,655360)) goto DIE;
 	if (!response_addbytes("\377\002\000\000\000\000\000\000\000\000\000\000\000\000\000\002",16)) goto DIE;
 	response_rfinish(RESPONSE_ANSWER);
       }
@@ -373,7 +373,7 @@ static int doit(struct query *z,int state)
       if (z->level) goto LOWERLEVEL;
       if (!rqa(z)) goto DIE;
       if (typematch(DNS_T_AAAA,dtype)) {
-	if (!response_rstart(d,DNS_T_AAAA,"\0\0\0\0")) goto DIE;
+	if (!response_rstart(d,DNS_T_AAAA,655360)) goto DIE;
 	if (!response_addbytes("\377\002\000\000\000\000\000\000\000\000\000\000\000\000\000\003",16)) goto DIE;
 	response_rfinish(RESPONSE_ANSWER);
       }
