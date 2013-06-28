@@ -26,6 +26,8 @@
 
 long interface;
 
+stralloc ignoreip = {0};
+
 static int packetquery(char *buf,unsigned int len,char **q,char qtype[2],char qclass[2],char id[2])
 {
   unsigned int pos;
@@ -393,7 +395,9 @@ char seed[128];
 int main()
 {
   char *x;
+  unsigned int i, j, k;
   unsigned long cachesize;
+  static stralloc sa = {0};
 
   x = env_get("INTERFACE");
   if (x) scan_ulong(x,&interface);
@@ -444,6 +448,20 @@ int main()
   scan_ulong(x,&cachesize);
   if (!cache_init(cachesize))
     strerr_die3x(111,FATAL,"not enough memory for cache of size ",x);
+
+  if (openreadclose("ignoreip",&sa,64) < 0)
+    strerr_die2x(111,FATAL,"trouble reading ignoreip");
+  for(j = k = i = 0; i < sa.len; i++)
+    if (sa.s[i] == '\n')  {
+      sa.s[i] = '\0';
+      if (!stralloc_readyplus(&ignoreip,16))
+	strerr_die2x(111,FATAL,"out of memory parsing ignoreip");
+      if (!ip6_scan(sa.s+k,ignoreip.s+j))
+        strerr_die3x(111,FATAL,"unable to parse address in ignoreip ",ignoreip.s+k);
+      j += 16;
+      k = i + 1;
+    }
+  ignoreip.len = j;
 
   if (env_get("HIDETTL"))
     response_hidettl();

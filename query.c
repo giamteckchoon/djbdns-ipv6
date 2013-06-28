@@ -14,6 +14,8 @@
 #include "query.h"
 #include "ip6.h"
 
+extern stralloc ignoreip;
+
 static int flagforwardonly = 0;
 
 void query_forwardonly(void)
@@ -194,6 +196,7 @@ static int doit(struct query *z,int state)
   int k;
   int p;
   int q;
+  unsigned int ii;
 
   errno = error_io;
   if (state == 1) goto HAVEPACKET;
@@ -830,6 +833,11 @@ static int doit(struct query *z,int state)
         pos = dns_packet_copy(buf,len,pos,header,10); if (!pos) goto DIE;
         if (byte_equal(header + 8,2,"\0\4")) {
           pos = dns_packet_copy(buf,len,pos,header,4); if (!pos) goto DIE;
+          if (ignoreip.len)
+	    for(ii = 0; ii < ignoreip.len; ii+= 16) {
+	      if (byte_equal(ignoreip.s+ii,12,V4mappedprefix) &&
+	          byte_equal(header,4,ignoreip.s+ii+12)) goto NXDOMAIN;
+	    }
           save_data(header,4);
           log_rr(whichserver,t1,DNS_T_A,header,4,ttl);
         }
@@ -844,6 +852,9 @@ static int doit(struct query *z,int state)
         pos = dns_packet_copy(buf,len,pos,header,10); if (!pos) goto DIE;
         if (byte_equal(header + 8,2,"\0\20")) {
           pos = dns_packet_copy(buf,len,pos,header,16); if (!pos) goto DIE;
+          if (ignoreip.len)
+	    for(ii = 0; ii < ignoreip.len; ii+= 16)
+	      if (byte_equal(header,16,ignoreip.s+ii)) goto NXDOMAIN;
           save_data(header,16);
           log_rr(whichserver,t1,DNS_T_AAAA,header,16,ttl);
         }
