@@ -195,6 +195,13 @@ void log_lame(const char server[16],const char *control,const char *referral)
   line();
 }
 
+void log_ignore_referral(const char server[16],const char * control, const char *referral)
+{
+  string("ignored referral "); ip(server); space();
+  name(control); space(); name(referral);
+  line();
+}
+
 void log_servfail(const char *dn)
 {
   const char *x = error_str(errno);
