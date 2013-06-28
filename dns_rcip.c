@@ -41,9 +41,7 @@ static int init(char ip[256])
             while ((data.s[i] == ' ') || (data.s[i] == '\t'))
               ++i;
             if (iplen <= 60)
-              if (ip4_scan(data.s + i,ip + iplen)) {
-		if (byte_equal(ip + iplen,16,V6any))
-		  byte_copy(ip + iplen,16,V6loopback);
+              if (ip6_scan(data.s + i,ip + iplen)) {
                 iplen += 16;
 	      }
           }
