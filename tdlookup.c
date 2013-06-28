@@ -339,19 +339,27 @@ static int doit(char *qname,char qtype[2])
 
 int respond(char *q,char qtype[2],char ip[16])
 {
-  int fd;
+  static struct tai cdb_valid = { 0 };
+  static int fd = -1;
+  struct tai one_second;
   int r;
 
   find_client_loc(clientloc, ip);
 
   tai_now(&now);
-  fd = open_read("data.cdb");
-  if (fd == -1) return 0;
-  cdb_init(&c,fd);
+  if (tai_less(&cdb_valid, &now)) {
+    if (fd != -1) {
+      cdb_free(&c);
+      close(fd);
+    }
+    fd = open_read("data.cdb");
+    if (fd == -1) return 0;
+    cdb_init(&c,fd);
+    tai_uint(&one_second, 1);
+    tai_add(&cdb_valid, &now, &one_second);
+  }
 
   r = doit(q,qtype);
 
-  cdb_free(&c);
-  close(fd);
   return r;
 }
