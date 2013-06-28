@@ -167,6 +167,7 @@ static int thistcp(struct dns_transmit *d)
       taia_uint(&d->deadline,10);
       taia_add(&d->deadline,&d->deadline,&now);
       if (socket_connect6(d->s1 - 1,ip,53,d->scope_id) == 0) {
+	d->pos = 0;
         d->tcpstate = 2;
         return 0;
       }
