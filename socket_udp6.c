@@ -30,6 +30,12 @@ compat:
     return -1;
   }
   if (ndelay_on(s) == -1) { close(s); return -1; }
+#ifdef IPV6_V6ONLY
+  {
+    int zero=0;
+    setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,(void*)&zero,sizeof(zero));
+  }
+#endif
   return s;
 #else
   return socket_udp();
