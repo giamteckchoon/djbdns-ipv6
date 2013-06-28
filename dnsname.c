@@ -2,6 +2,7 @@
 #include "exit.h"
 #include "strerr.h"
 #include "ip4.h"
+#include "ip6.h"
 #include "dns.h"
 
 #define FATAL "dnsname: fatal: "

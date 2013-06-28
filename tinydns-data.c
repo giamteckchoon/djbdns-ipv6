@@ -355,8 +355,13 @@ int main()
 	  rr_add(ip6,16);
 	  rr_finish(d1);
 
-	  if (line.s[0] == '6') {
-	    dns_name6_domain(d6ptr,ip6);
+	  if (line.s[0] == '6') {	/* emit both .ip6.arpa and .ip6.int */
+	    dns_name6_domain(d6ptr,ip6,DNS_IP6_ARPA);
+	    rr_start(DNS_T_PTR,ttl,ttd,loc);
+	    rr_addname(d1);
+	    rr_finish(d6ptr);
+
+	    dns_name6_domain(d6ptr,ip6,DNS_IP6_INT);
 	    rr_start(DNS_T_PTR,ttl,ttd,loc);
 	    rr_addname(d1);
 	    rr_finish(d6ptr);
