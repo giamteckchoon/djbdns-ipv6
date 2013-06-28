@@ -166,7 +166,7 @@ static int doit(struct query *z,int state)
   char *buf;
   unsigned int len;
   const char *whichserver;
-  char header[12];
+  char header[24];
   char misc[20];
   unsigned int rcode;
   unsigned int posanswers;
