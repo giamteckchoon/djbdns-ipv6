@@ -479,6 +479,10 @@ static int doit(struct query *z,int state)
     if (typematch(DNS_T_A,dtype)) {
       byte_copy(key,2,DNS_T_A);
       cached = cache_get(key,dlen + 2,&cachedlen,&ttl);
+      if (cached && !cachedlen && z->level) {	/* if we were looking the A record up to find an NS, try IPv6 too */
+	z->ipv6[z->level]=1;
+	goto NEWNAME;
+      }
       if (cached && (cachedlen || byte_diff(dtype,2,DNS_T_ANY))) {
 	if (z->level) {
 	  log_cachedanswer(d,DNS_T_A);
@@ -506,10 +510,6 @@ static int doit(struct query *z,int state)
 	}
 	cleanup(z);
 	return 1;
-      }
-      if (z->level) {	/* if we were looking the A record up to find an NS, try IPv6 too */
-	z->ipv6[z->level]=1;
-	goto NEWNAME;
       }
     }
 
@@ -610,7 +610,6 @@ static int doit(struct query *z,int state)
     if (z->ns[z->level][j]) {
       if (z->level + 1 < QUERY_MAXLEVEL) {
         if (!dns_domain_copy(&z->name[z->level + 1],z->ns[z->level][j])) goto DIE;
-	z->ipv6[z->level + 1]=0;
         dns_domain_free(&z->ns[z->level][j]);
         ++z->level;
 	z->ipv6[z->level]=0;
@@ -626,8 +625,9 @@ static int doit(struct query *z,int state)
 
   dns_sortip6(z->servers[z->level],256);
   if (z->level) {
-    log_tx(z->name[z->level],DNS_T_A,z->control[z->level],z->servers[z->level],z->level);
-    if (dns_transmit_start(&z->dt,z->servers[z->level],flagforwardonly,z->name[z->level],DNS_T_A,z->localip) == -1) goto DIE;
+    dtype = z->ipv6[z->level] ? DNS_T_AAAA : DNS_T_A;
+    log_tx(z->name[z->level],dtype,z->control[z->level],z->servers[z->level],z->level);
+    if (dns_transmit_start(&z->dt,z->servers[z->level],flagforwardonly,z->name[z->level],dtype,z->localip) == -1) goto DIE;
   }
   else {
     log_tx(z->name[0],z->type,z->control[0],z->servers[0],0);
@@ -926,6 +926,11 @@ static int doit(struct query *z,int state)
           save_start();
           save_finish(dtype,d,soattl);
 	  log_nodata(whichserver,d,dtype,soattl);
+	  if (z->level && !byte_diff(DNS_T_A,2,dtype)) {
+	    d = z->name[z->level];
+	    z->ipv6[z->level] = 1;
+	    goto NEWNAME; /* retry, will ask for AAAA next */
+	  }
         }
 
   log_stats();
@@ -946,6 +951,14 @@ static int doit(struct query *z,int state)
                   if (byte_equal(z->servers[z->level - 1] + k,16,V6any)) {
 		    byte_copy(z->servers[z->level - 1] + k,12,V4mappedprefix);
                     if (!dns_packet_copy(buf,len,pos,z->servers[z->level - 1] + k + 12,4)) goto DIE;
+                    break;
+                  }
+          if (typematch(header,DNS_T_AAAA))
+            if (byte_equal(header + 2,2,DNS_C_IN)) /* should always be true */
+              if (datalen == 16)
+                for (k = 0;k < 256;k += 16)
+                  if (byte_equal(z->servers[z->level - 1] + k,16,V6any)) {
+                    if (!dns_packet_copy(buf,len,pos,z->servers[z->level - 1] + k,16)) goto DIE;
                     break;
                   }
         pos += datalen;
