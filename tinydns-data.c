@@ -206,6 +206,7 @@ int main()
   char type[2];
   char soa[20];
   char buf[4];
+  uint32 temp;
 
   umask(022);
 
@@ -261,19 +262,34 @@ int main()
 	if (!dns_domain_fromdot(&d1,f[0].s,f[0].len)) nomem();
 
 	if (!stralloc_0(&f[3])) nomem();
-	if (!scan_ulong(f[3].s,&u)) uint32_unpack_big(defaultsoa,&u);
+	if (!scan_ulong(f[3].s,&u)) {
+	  uint32_unpack_big(defaultsoa,&temp);
+	  u = temp;
+	}
 	uint32_pack_big(soa,u);
 	if (!stralloc_0(&f[4])) nomem();
-	if (!scan_ulong(f[4].s,&u)) uint32_unpack_big(defaultsoa + 4,&u);
+	if (!scan_ulong(f[4].s,&u)) {
+	  uint32_unpack_big(defaultsoa + 4,&temp);
+	  u = temp;
+	}
 	uint32_pack_big(soa + 4,u);
 	if (!stralloc_0(&f[5])) nomem();
-	if (!scan_ulong(f[5].s,&u)) uint32_unpack_big(defaultsoa + 8,&u);
+	if (!scan_ulong(f[5].s,&u)) {
+	  uint32_unpack_big(defaultsoa + 8,&temp);
+	  u = temp;
+	}
 	uint32_pack_big(soa + 8,u);
 	if (!stralloc_0(&f[6])) nomem();
-	if (!scan_ulong(f[6].s,&u)) uint32_unpack_big(defaultsoa + 12,&u);
+	if (!scan_ulong(f[6].s,&u)) {
+	  uint32_unpack_big(defaultsoa + 12,&temp);
+	  u = temp;
+	}
 	uint32_pack_big(soa + 12,u);
 	if (!stralloc_0(&f[7])) nomem();
-	if (!scan_ulong(f[7].s,&u)) uint32_unpack_big(defaultsoa + 16,&u);
+	if (!scan_ulong(f[7].s,&u)) {
+	  uint32_unpack_big(defaultsoa + 16,&temp);
+	  u = temp;
+	}
 	uint32_pack_big(soa + 16,u);
 
 	if (!stralloc_0(&f[8])) nomem();
