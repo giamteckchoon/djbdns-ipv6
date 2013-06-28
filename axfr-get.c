@@ -220,7 +220,7 @@ unsigned int doit(char *buf,unsigned int len,unsigned int pos)
   }
   else if (byte_equal(data,2,DNS_T_AAAA)) {
     char ipstr[IP6_FMT];
-    if (!stralloc_copys(&line,"6")) return 0;
+    if (!stralloc_copys(&line,"3")) return 0;
     if (!dns_domain_todot_cat(&line,d1)) return 0;
     if (!stralloc_cats(&line,":")) return 0;
     x_copy(buf,len,pos,data,16);
