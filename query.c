@@ -209,7 +209,7 @@ static int doit(struct query *z,int state)
   NEWNAME:
   if (++z->loop == 100) goto DIE;
   d = z->name[z->level];
-  dtype = z->level ? DNS_T_A : z->type;
+  dtype = z->level ? (z->ipv6[z->level] ? DNS_T_AAAA : DNS_T_A) : z->type;
   dlen = dns_domain_length(d);
 
   if (globalip(d,misc)) {
@@ -507,6 +507,10 @@ static int doit(struct query *z,int state)
 	cleanup(z);
 	return 1;
       }
+      if (z->level) {	/* if we were looking the A record up to find an NS, try IPv6 too */
+	z->ipv6[z->level]=1;
+	goto NEWNAME;
+      }
     }
 
     if (typematch(DNS_T_AAAA,dtype)) {
@@ -606,8 +610,10 @@ static int doit(struct query *z,int state)
     if (z->ns[z->level][j]) {
       if (z->level + 1 < QUERY_MAXLEVEL) {
         if (!dns_domain_copy(&z->name[z->level + 1],z->ns[z->level][j])) goto DIE;
+	z->ipv6[z->level + 1]=0;
         dns_domain_free(&z->ns[z->level][j]);
         ++z->level;
+	z->ipv6[z->level]=0;
         goto NEWNAME;
       }
       dns_domain_free(&z->ns[z->level][j]);
@@ -646,7 +652,8 @@ static int doit(struct query *z,int state)
   whichserver = z->dt.servers + 16 * z->dt.curserver;
   control = z->control[z->level];
   d = z->name[z->level];
-  dtype = z->level ? DNS_T_A : z->type;
+/*  dtype = z->level ? DNS_T_A : z->type; */
+  dtype = z->level ? (z->ipv6[z->level] ? DNS_T_AAAA : DNS_T_A) : z->type;
 
   pos = dns_packet_copy(buf,len,0,header,12); if (!pos) goto DIE;
   pos = dns_packet_skipname(buf,len,pos); if (!pos) goto DIE;
@@ -996,7 +1003,7 @@ static int doit(struct query *z,int state)
   if (!dns_domain_suffix(d,referral)) goto DIE;
   control = d + dns_domain_suffixpos(d,referral);
   z->control[z->level] = control;
-  byte_zero(z->servers[z->level],64);
+  byte_zero(z->servers[z->level],256);
   for (j = 0;j < QUERY_MAXNS;++j)
     dns_domain_free(&z->ns[z->level][j]);
   k = 0;
@@ -1044,6 +1051,7 @@ int query_start(struct query *z,char *dn,char type[2],char class[2],char localip
   byte_copy(z->class,2,class);
   byte_copy(z->localip,16,localip);
   z->scope_id=scope_id;
+  z->ipv6[0]=0;
 
   return doit(z,0);
 }
