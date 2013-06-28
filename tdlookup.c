@@ -119,8 +119,9 @@ static int doit(char *q,char qtype[2])
   char x[20];
   uint16 u16;
   char addr[8][4];
-  int addrnum;
-  uint32 addrttl;
+  char addr6[8][16];
+  int addrnum,addr6num;
+  uint32 addrttl,addr6ttl;
   int i;
 
   anpos = response_len;
@@ -152,8 +153,8 @@ static int doit(char *q,char qtype[2])
   wild = q;
 
   for (;;) {
-    addrnum = 0;
-    addrttl = 0;
+    addrnum = addr6num = 0;
+    addrttl = addr6ttl = 0;
     cdb_findstart(&c);
     while (r = find(wild,wild != q)) {
       if (r == -1) return 0;
@@ -169,6 +170,17 @@ static int doit(char *q,char qtype[2])
 	  byte_copy(addr[i],4,data + dpos);
 	}
 	if (addrnum < 1000000) ++addrnum;
+	continue;
+      }
+      if (byte_equal(type,2,DNS_T_AAAA) && (dlen - dpos == 16)) {
+	addr6ttl = ttl;
+	i = dns_random(addr6num + 1);
+	if (i < 8) {
+	  if ((i < addr6num) && (addr6num < 8))
+	    byte_copy(addr6[addr6num],16,addr6[i]);
+	  byte_copy(addr6[i],16,data + dpos);
+	}
+	if (addr6num < 1000000) ++addr6num;
 	continue;
       }
       if (!response_rstart(q,type,ttl)) return 0;
@@ -193,6 +205,12 @@ static int doit(char *q,char qtype[2])
       if (i < 8) {
 	if (!response_rstart(q,DNS_T_A,addrttl)) return 0;
 	if (!response_addbytes(addr[i],4)) return 0;
+	response_rfinish(RESPONSE_ANSWER);
+      }
+    for (i = 0;i < addr6num;++i)
+      if (i < 8) {
+	if (!response_rstart(q,DNS_T_AAAA,addrttl)) return 0;
+	if (!response_addbytes(addr6[i],16)) return 0;
 	response_rfinish(RESPONSE_ANSWER);
       }
 
@@ -257,6 +275,11 @@ static int doit(char *q,char qtype[2])
 	  if (byte_equal(type,2,DNS_T_A)) {
             if (!response_rstart(d1,DNS_T_A,ttl)) return 0;
 	    if (!dobytes(4)) return 0;
+            response_rfinish(RESPONSE_ADDITIONAL);
+	  }
+	  else if (byte_equal(type,2,DNS_T_AAAA)) {
+            if (!response_rstart(d1,DNS_T_AAAA,ttl)) return 0;
+	    if (!dobytes(16)) return 0;
             response_rfinish(RESPONSE_ADDITIONAL);
 	  }
         }
