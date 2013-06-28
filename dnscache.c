@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <signal.h>
 #include "env.h"
 #include "exit.h"
 #include "scan.h"
@@ -399,6 +400,7 @@ int main()
   unsigned long cachesize;
   static stralloc sa = {0};
 
+  signal(SIGPIPE, SIG_IGN);
   x = env_get("INTERFACE");
   if (x) scan_ulong(x,&interface);
 
