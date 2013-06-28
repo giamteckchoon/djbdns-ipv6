@@ -404,9 +404,13 @@ int main()
     strerr_die2x(111,FATAL,"$IP not set");
   if (!ip6_scan(x,myipincoming))
     strerr_die3x(111,FATAL,"unable to parse IP address ",x);
+
+#if 0
   /* if if IP is a mapped-IPv4 address, disable IPv6 functionality */
+  /* this is actually a bad idea */
   if (ip6_isv4mapped(myipincoming))
     noipv6 = 1;
+#endif
 
   udp53 = socket_udp6();
   if (udp53 == -1)
