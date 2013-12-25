@@ -20,6 +20,8 @@
 #define DNS_T_SIG "\0\30"
 #define DNS_T_KEY "\0\31"
 #define DNS_T_AAAA "\0\34"
+#define DNS_T_SRV "\0\041"
+#define DNS_T_NAPTR "\0\43"
 #define DNS_T_IXFR "\0\373"
 #define DNS_T_AXFR "\0\374"
 #define DNS_T_ANY "\0\377"

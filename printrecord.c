@@ -92,6 +92,57 @@ unsigned int printrecord_cat(stralloc *out,const char *buf,unsigned int len,unsi
     stringlen=ip6_fmt(ip6str,misc);
     if (!stralloc_catb(out,ip6str,stringlen)) return 0;
   }
+  else if (byte_equal(misc,2,DNS_T_SRV)) {
+    uint16 u16tmp;
+    if (!stralloc_cats(out," SRV ")) return 0;
+    pos = dns_packet_copy(buf,len,pos,misc,2); if (!pos) return 0;
+    uint16_unpack_big(misc,&u16tmp);
+    pos = dns_packet_copy(buf,len,pos,misc,2); if (!pos) return 0;
+    uint16_unpack_big(misc,&u16);
+    if (!stralloc_catulong0(out,u16,0)) return 0;
+    if (!stralloc_cats(out," ")) return 0;
+    if (!stralloc_catulong0(out,u16tmp,0)) return 0;
+    if (!stralloc_cats(out," ")) return 0;
+    pos = dns_packet_copy(buf,len,pos,misc,2); if (!pos) return 0;
+    uint16_unpack_big(misc,&u16);
+    if (!stralloc_catulong0(out,u16,0)) return 0;
+    if (!stralloc_cats(out," ")) return 0;
+    pos = dns_packet_getname(buf,len,pos,&d); if (!pos) return 0;
+    if (!dns_domain_todot_cat(out,d)) return 0;
+  }
+  else if (byte_equal(misc,2,DNS_T_NAPTR)) {
+    char str[255];
+    unsigned int oldpos;
+    if (!stralloc_cats(out," NAPTR ")) return 0;
+    pos = dns_packet_copy(buf,len,pos,misc,2); if (!pos) return 0;
+    uint16_unpack_big(misc,&u16);
+    if (!stralloc_catulong0(out,u16,0)) return 0;
+    if (!stralloc_cats(out," ")) return 0;
+    pos = dns_packet_copy(buf,len,pos,misc,2); if (!pos) return 0;
+    uint16_unpack_big(misc,&u16);
+    if (!stralloc_catulong0(out,u16,0)) return 0;
+    if (!stralloc_cats(out," ")) return 0;
+    pos = dns_packet_copy(buf,len,pos,&ch,1); if (!pos) return 0;
+    pos = dns_packet_copy(buf,len,pos,str,ch); if (!pos) return 0;
+    if (!stralloc_cats(out,"\"")) return 0;
+    if (!stralloc_catb(out,str,ch)) return 0;
+    if (!stralloc_cats(out,"\" ")) return 0;
+    pos = dns_packet_copy(buf,len,pos,&ch,1); if (!pos) return 0;
+    pos = dns_packet_copy(buf,len,pos,str,ch); if (!pos) return 0;
+    if (!stralloc_cats(out,"\"")) return 0;
+    if (!stralloc_catb(out,str,ch)) return 0;
+    if (!stralloc_cats(out,"\" ")) return 0;
+    pos = dns_packet_copy(buf,len,pos,&ch,1); if (!pos) return 0;
+    pos = dns_packet_copy(buf,len,pos,str,ch); if (!pos) return 0;
+    if (!stralloc_cats(out,"\"")) return 0;
+    if (!stralloc_catb(out,str,ch)) return 0;
+    if (!stralloc_cats(out,"\" ")) return 0;
+    pos = dns_packet_getname(buf,len,pos,&d); if (!pos) return 0;
+    oldpos = out->len;
+    if (!dns_domain_todot_cat(out,d)) return 0;
+    if (out->len == oldpos)
+      if (!stralloc_cats(out,".")) return 0;
+  }
   else {
     if (!stralloc_cats(out," ")) return 0;
     uint16_unpack_big(misc,&u16);
