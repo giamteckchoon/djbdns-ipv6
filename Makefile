@@ -155,8 +155,8 @@ uint32.h uint64.h
 	./compile cache.c
 
 cachetest: \
-load cachetest.o cache.o libtai.a buffer.a alloc.a unix.a byte.a
-	./load cachetest cache.o libtai.a buffer.a alloc.a unix.a \
+load cachetest.o siphash.o cache.o dns_random.o libtai.a buffer.a alloc.a unix.a byte.a
+	./load cachetest siphash.o cache.o dns_random.o libtai.a buffer.a alloc.a unix.a \
 	byte.a 
 
 cachetest.o: \
@@ -346,10 +346,10 @@ stralloc.h iopause.h taia.h tai.h uint64.h taia.h
 	./compile dns_txt.c
 
 dnscache: \
-load dnscache.o droproot.o okclient.o log.o cache.o query.o \
+load dnscache.o droproot.o okclient.o log.o siphash.o cache.o dns_random.o query.o \
 response.o dd.o roots.o iopause.o prot.o dns.a env.a alloc.a buffer.a \
 libtai.a unix.a byte.a socket.lib
-	./load dnscache droproot.o okclient.o log.o cache.o \
+	./load dnscache droproot.o okclient.o log.o siphash.o cache.o dns_random.o \
 	query.o response.o dd.o roots.o iopause.o prot.o dns.a \
 	env.a alloc.a buffer.a libtai.a unix.a byte.a  `cat \
 	socket.lib`

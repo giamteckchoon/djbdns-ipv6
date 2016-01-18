@@ -1,12 +1,16 @@
 #include "alloc.h"
 #include "byte.h"
+#include "dns.h"
 #include "uint32.h"
+#include "uint64.h"
 #include "exit.h"
 #include "tai.h"
 #include "cache.h"
+#include "siphash.h"
 
 uint64 cache_motion = 0;
 
+static unsigned char siphash_key[16];
 static char *x = 0;
 static uint32 size;
 static uint32 hsize;
@@ -64,17 +68,11 @@ static uint32 get4(uint32 pos)
 
 static unsigned int hash(const char *key,unsigned int keylen)
 {
-  unsigned int result = 5381;
+  uint64 h;
+  siphash24((unsigned char *) &h,
+            (const unsigned char *) key, keylen, siphash_key);
 
-  while (keylen) {
-    result = (result << 5) + result;
-    result ^= (unsigned char) *key;
-    ++key;
-    --keylen;
-  }
-  result <<= 2;
-  result &= hsize - 4;
-  return result;
+  return ((uint32) h) & (hsize - 4);
 }
 
 char *cache_get(const char *key,unsigned int keylen,unsigned int *datalen,uint32 *ttl)
@@ -183,6 +181,10 @@ void cache_set(const char *key,unsigned int keylen,const char *data,unsigned int
 
 int cache_init(unsigned int cachesize)
 {
+  unsigned int i = 0U;
+  do {
+    siphash_key[i] = (unsigned char) dns_random(0x100);
+  } while (++i < sizeof siphash_key);
   if (x) {
     alloc_free(x);
     x = 0;
