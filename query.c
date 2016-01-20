@@ -643,6 +643,7 @@ static int doit(struct query *z,int state)
   if (j == 256) goto SERVFAIL;
 
   dns_sortip6(z->servers[z->level],256);
+  dns_reorder(z->servers[z->level],256);
   if (z->level) {
     dtype = z->ipv6[z->level] ? DNS_T_AAAA : DNS_T_A;
     log_tx(z->name[z->level],dtype,z->control[z->level],z->servers[z->level],z->level);

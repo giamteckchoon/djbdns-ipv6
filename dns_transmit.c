@@ -9,6 +9,91 @@
 #include "dns.h"
 #include "ip6.h"
 
+#define NSCACHED 512 /* too large means no expiration which would be bad. */
+#define RESOLUTION 1000 /* 1000 means milliseconds. should be <max_uint32/45 */
+struct nscache {
+  char ip[16];
+  uint32 used;
+} nsc[NSCACHED];
+unsigned int nsc_idx=0;
+
+static void nsc_reserve(const struct dns_transmit *d, unsigned int timeout)
+{
+  /* reserve a slot in the array for d->remoteip */
+  unsigned int i;
+  for (i=0;i<NSCACHED;i++) {
+    unsigned int j=(i+nsc_idx)%NSCACHED;
+    if (byte_equal(nsc[j].ip,16,d->remoteip)) {
+      nsc[j].used=timeout*RESOLUTION;
+      if (j!=nsc_idx) {
+	struct nscache t;
+	t=nsc[nsc_idx];
+	nsc[nsc_idx]=nsc[j];
+	nsc[j]=t;
+      }
+      nsc_idx=(nsc_idx+1)%NSCACHED;
+      return;
+    }
+  }
+  byte_copy(nsc[nsc_idx].ip,16,d->remoteip);
+  nsc[nsc_idx].used=timeout*RESOLUTION;
+  nsc_idx=(nsc_idx+1)%NSCACHED;
+}
+
+static void nsc_good(const struct dns_transmit *d)
+{
+  struct taia t;
+  unsigned long x;
+  unsigned int i;
+  taia_now(&t);
+  taia_sub(&t,&t,&d->start);
+  x=taia_approx(&t)*RESOLUTION;
+  for (i=0;i<NSCACHED;i++)
+    if (byte_equal(d->remoteip,16,nsc[i].ip))
+      nsc[i].used=x;
+}
+
+void dns_reorder(char *buf, unsigned int len)
+{
+  /* servers are already randomized */
+  unsigned int x=len/16;
+  uint32 *y;
+  unsigned int i;
+  unsigned int j;
+  if (!nsc) _exit(77);
+  if (x<2) return;
+  y=(uint32 *)alloc(sizeof(uint32) * x);
+  if (!y) return;
+
+  for (j=0;j<x;j++) {
+    if (byte_equal(buf+16*j,16,V6any))
+      y[j]=0x7fffffff;
+    else {
+      for (i=0;i<NSCACHED;i++) {
+	if (byte_equal(nsc[i].ip,16,buf+16*j)) {
+	  y[j]=nsc[i].used;
+	  break;
+	}
+      }
+      if (i==NSCACHED) /* unknown. Could be fast. */
+	y[j]=0;
+    }
+  }
+  /* hyper fast bubble sort. */
+  for (i=0;i<x-1;i++) {
+    for (j=i+1;j<x;j++) {
+      if (y[j]<y[i]) {
+	uint32 t;
+	char ip[16];
+	t=y[i]; y[i]=y[j];y[j]=t;
+	byte_copy(ip,16,buf+i*16);
+	byte_copy(buf+i*16,16,buf+j*16);
+	byte_copy(buf+j*16,16,ip);
+      }
+    }
+  }
+}
+
 static int serverwantstcp(const char *buf,unsigned int len)
 {
   char out[12];
@@ -119,6 +204,9 @@ static int thisudp(struct dns_transmit *d)
             taia_uint(&d->deadline,timeouts[d->udploop]);
             taia_add(&d->deadline,&d->deadline,&now);
             d->tcpstate = 0;
+	    d->start=now;
+	    byte_copy(d->remoteip,16,ip);
+	    nsc_reserve(d,timeouts[d->udploop]);
             return 0;
           }
   
@@ -270,6 +358,7 @@ have sent query to curserver on UDP socket s
     if (r + 1 > sizeof udpbuf) return 0;
 
     if (irrelevant(d,udpbuf,r)) return 0;
+    nsc_good(d);
     if (serverwantstcp(udpbuf,r)) return firsttcp(d);
     if (serverfailed(udpbuf,r)) {
       if (d->udploop == 2) return 0;

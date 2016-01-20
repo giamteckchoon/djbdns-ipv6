@@ -36,9 +36,11 @@ struct dns_transmit {
   unsigned int udploop;
   unsigned int curserver;
   struct taia deadline;
+  struct taia start;
   unsigned int pos;
   const char *servers;
   char localip[16];
+  char remoteip[16];
   unsigned int scope_id;
   char qtype[2];
 } ;
@@ -48,6 +50,7 @@ extern unsigned int dns_random(unsigned int);
 
 extern void dns_sortip(char *,unsigned int);
 extern void dns_sortip6(char *,unsigned int);
+extern void dns_reorder(char *,unsigned int);
 
 extern void dns_domain_free(char **);
 extern int dns_domain_copy(char **,const char *);
